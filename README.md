@@ -5,7 +5,7 @@
 <!-- TODO: Wähle deine beste Heatmap und passe den Dateinamen an -->
 ![Normalized reachability heatmap of Berlin](heatmap_20250306_191746.png)
 
-*Heatmap intensity shows standard deviations from the mean reachable population — bright areas are well connected, dark areas are underserved.*
+*Heatmap intensity shows standard deviations from the mean reachable population — blue areas are well connected, red areas are underserved.*
 
 ## What it does
 
