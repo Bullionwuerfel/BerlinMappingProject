@@ -1,49 +1,56 @@
+# Berlin Public Transport Accessibility Analysis
 
-# Final Project: Public transport density function
+> How well does Berlin's public transport actually serve its population? An isochrone-based analysis revealing over- and under-served areas of the city.
 
-Presentation https://prezi.com/p/edit/vaukrenb6waj/
+<!-- TODO: Wähle deine beste Heatmap und passe den Dateinamen an -->
+![Normalized reachability heatmap of Berlin](heatmap_20250306_191746.png)
 
+*Heatmap intensity shows standard deviations from the mean reachable population — bright areas are well connected, dark areas are underserved.*
 
-Chapter 1: Import
-This chapter sets up the environment by installing necessary libraries for the project, such as owslib, pyproj, geojson, ratelimit, diskcache, tqdm, selenium, and branca. These libraries provide functionality for web feature services, geographic data processing, geocoding, caching, progress bars, web scraping, and colormap creation. Additionally, this chapter mounts Google Drive to access and store data persistently.
+## What it does
 
-Chapter 2: Functions
-This chapter defines various functions used throughout the project. Here's a breakdown:
+For a grid of points across Berlin, this notebook computes **how many people can reach each point within a given travel time** using public transport. Comparing reachable population against local population density reveals which neighborhoods are over- or under-served by the ÖPNV network.
 
-Map Manipulation: add_point_to_map adds markers to a Folium map, while add_shape_to_map adds isochrone polygons to the map.
+Final outputs: interactive Folium maps, normalized heatmaps, and histograms of the reachable-population distribution.
 
-Data Acquisition: get_berlin_population_density fetches population density data for Berlin using web feature services (owslib). This function is memoized using cache.memoize() to store and reuse results, improving performance. get_coordinates uses geocoding to convert addresses to latitude and longitude.
+## Pipeline
 
-Isochrone Generation: generate_shape and generate_shape_fast generate isochrones using the TravelTime API. generate_iso_from_input and generate_iso_from_input_fast provide user interfaces to call these functions with address input.
+1. **Population data** — Berlin population density fetched via WFS (`owslib`) from Berlin's open geodata portal, processed as a GeoDataFrame with centroid coordinates
+2. **Isochrones** — travel-time polygons generated per grid point via the TravelTime API (geocoding for address input)
+3. **Spatial join** — point-in-polygon tests mark which population cells fall inside each isochrone
+4. **Grid & aggregation** — regular coordinate grid over Berlin; reachable population computed per point, with rate limiting and on-disk memoization to respect API limits
+5. **Visualization** — choropleth maps, grid overlays, intensity heatmaps (raw and normalized), histograms
 
-Data Processing: add_centroid_coordinates adds columns with centroid coordinates to a GeoDataFrame. add_is_within_column adds a column to indicate whether points are within a specified polygon.
+## Tech stack
 
-Visualization: create_population_density_map creates a choropleth map visualizing population density. create_map_with_shapes_and_points displays shapes (isochrones) and points on a map. display_grid_on_map, display_grid_bbox, display_grid_on_map_with_intensity, and display_grid_on_map_with_intensity2 visualize grids, bounding boxes, and heatmaps for reachable population data.
+`Python` · `GeoPandas` · `Folium` · `owslib` (WFS) · `TravelTime API` · `pyproj` / `geojson` · `diskcache` (memoization) · `ratelimit` · `branca` · `Selenium` (map export) · `tqdm`
 
-Reachable Population Analysis: pop_reachable calculates the total population reachable within a given time from a location. It integrates isochrone generation, population data filtering, and map visualization. rate_limited_pop_reachable wraps pop_reachable to apply rate limiting and prevent exceeding API call limits.
+## Key results
 
-Grid Generation: generate_grid_coordinates creates a grid of coordinates centered on a specific location, useful for analyzing population reachability over a defined area.
-Data Summarization: create_reachable_population_histogram creates histograms of reachable population data for insights into the distribution of reachability.
+<!-- TODO: 2–3 Sätze mit deinen konkreten Erkenntnissen eintragen, z. B.:
+"Within a 20-minute travel window, inner-city districts reach up to X people, while parts of [Bezirk] fall more than 2 standard deviations below the city mean." -->
 
-Chapter 3: Initialize once for Berlin population data
+## Run it yourself
 
-This chapter initializes the population density data for Berlin by calling get_berlin_population_density and adding centroid coordinates using add_centroid_coordinates. These steps are performed once to prepare data for subsequent analysis and visualizations.
+1. Clone the repo and open `isochrone_mapping.ipynb`
+2. Get a free [TravelTime API](https://traveltime.com/) key and set your `APP_ID` / `API_KEY`
+3. Install dependencies:
 
-Chapter 4: Testing by running Code
-This chapter demonstrates the functionalities of the defined functions. It includes examples of:
+```bash
+pip install geopandas folium owslib pyproj geojson ratelimit diskcache tqdm selenium branca
+```
 
-Generating isochrones using generate_iso_from_input.
-Examining isochrone shapes and coordinate systems.
-Calculating shapes within isochrones using add_is_within_column.
-Creating maps with isochrones and population points.
-Calculating reachable populations using pop_reachable with the IronHack location as an example.
-Visualizing maps and data with isochrones, population points, grids, bounding boxes, and heatmaps.
+API responses are cached in `cachedir/`, so re-runs are fast and stay within rate limits.
 
-Chapter 5: Grid and Heatmap Display
-This chapter focuses on generating and visualizing a grid of points along with heatmap representations of population reachability. It includes the following steps:
+## Slides
 
-Defining a grid generation function (generate_grid_coordinates) for creating a grid of points.
-Displaying the grid on a map using display_grid_on_map.
-Creating a heatmap showing population density using display_grid_on_map_with_intensity.
-Generating a normalized heatmap where the intensity represents standard deviations from the mean with display_grid_on_map_with_intensity2.
-Generating a histogram visualization of reachable population data with create_reachable_population_histogram.
+📊 [Project presentation (Prezi)](TODO-VIEW-LINK-EINFUEGEN)
+
+<!-- WICHTIG: Der bisherige Link (prezi.com/p/edit/...) ist ein Bearbeiten-Link und funktioniert
+     für Außenstehende nicht. In Prezi auf "Präsentieren/Teilen" gehen und den View-Link kopieren. -->
+
+## About
+
+Final project of the **Ironhack Data Analytics Bootcamp** (Berlin, 2025).
+
+Built by **Clemens Fritzen** — mechanical engineer (M.Sc., RWTH Aachen) working at the intersection of manufacturing and data. [LinkedIn](https://de.linkedin.com/in/clemens-fritzen)
